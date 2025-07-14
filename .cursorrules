@@ -1,0 +1,260 @@
+# Alpaca-py SDK .cursorrules Configuration
+
+## Repository Overview
+You are working on **alpaca-py**, the official Python SDK for Alpaca's suite of APIs. This SDK provides interfaces for trading, market data, and broker APIs with support for stocks, crypto, and options.
+
+## Core Architecture Principles
+
+### 1. Client-Based Architecture
+- **Separate clients for each API domain**:
+  - `TradingClient` - For trading operations
+  - `StockHistoricalDataClient` - For stock market data
+  - `CryptoHistoricalDataClient` - For crypto market data
+  - `NewsClient` - For news data
+  - `OptionHistoricalDataClient` - For options data
+  - `BrokerClient` - For broker API operations
+  - Data streaming clients for real-time data
+
+### 2. Request/Response Model Pattern
+- **All API methods use dedicated request objects**
+- Request models follow naming: `{Operation}Request` (e.g., `GetOrdersRequest`, `MarketOrderRequest`)
+- Response models provide structured data with `.df` property for pandas conversion
+- Use Pydantic for all data validation and serialization
+
+### 3. Module Organization
+```
+alpaca/
+├── trading/          # Trading API components
+├── data/            # Market data components
+├── broker/          # Broker API components
+├── common/          # Shared utilities and base classes
+└── examples/        # Usage examples and notebooks
+```
+
+## Code Quality Standards
+
+### Python Style & Standards
+- **Python 3.8+ compatibility required**
+- Follow PEP 8 style guide strictly
+- Use type hints for all public methods and classes
+- Maximum line length: 88 characters (Black formatter)
+- Use dataclasses or Pydantic models for structured data
+
+### Import Organization
+```python
+# Standard library imports
+import asyncio
+from datetime import datetime
+from typing import Dict, List, Optional, Union
+
+# Third-party imports
+import pandas as pd
+from pydantic import BaseModel, Field
+
+# Local imports
+from alpaca.common.base import BaseClient
+from alpaca.data.models import Bar, Quote
+```
+
+### Error Handling
+- Use specific exception classes for different error types
+- Implement proper error propagation from API responses
+- Include meaningful error messages with context
+- Log errors appropriately without exposing sensitive data
+
+### Documentation Standards
+- **Comprehensive docstrings** for all public methods using Google/NumPy style
+- Include parameter types, return types, and examples
+- Document all exceptions that can be raised
+- Provide usage examples in docstrings
+
+## Development Guidelines
+
+### 1. Adding New Features
+- **Request Model First**: Create Pydantic request model before implementing method
+- **Response Model**: Define response structure with proper typing
+- **Client Method**: Add method to appropriate client class
+- **Tests**: Write comprehensive unit and integration tests
+- **Documentation**: Update docs with examples
+
+### 2. API Integration Patterns
+```python
+# Standard pattern for API methods
+def get_something(self, request: GetSomethingRequest) -> SomethingResponse:
+    """
+    Retrieve something from the API.
+    
+    Args:
+        request: The request parameters
+        
+    Returns:
+        The API response
+        
+    Raises:
+        APIError: If the API returns an error
+    """
+    params = request.to_request_fields()
+    response = self._get("/endpoint", params)
+    return SomethingResponse.from_dict(response)
+```
+
+### 3. Pydantic Model Guidelines
+- Use `Field()` for validation and metadata
+- Implement `to_request_fields()` for API serialization
+- Use `from_dict()` class methods for response parsing
+- Include proper validation for financial data types
+
+### 4. Testing Requirements
+- **Unit tests** for all public methods
+- **Integration tests** with mock API responses
+- **Example validation** - ensure all examples work
+- **Performance tests** for data-heavy operations
+- Use pytest fixtures for common test data
+
+## File Organization Rules
+
+### Directory Structure
+```
+alpaca/
+├── trading/
+│   ├── client.py           # TradingClient
+│   ├── requests.py         # Request models
+│   ├── models.py          # Response models
+│   ├── enums.py           # Trading-specific enums
+│   └── __init__.py
+├── data/
+│   ├── historical/        # Historical data clients
+│   ├── streaming/         # Real-time data streaming
+│   ├── requests.py        # Data request models
+│   ├── models.py         # Data response models
+│   └── __init__.py
+├── broker/
+│   ├── client.py          # BrokerClient
+│   ├── requests.py        # Broker request models
+│   ├── models.py         # Broker response models
+│   └── __init__.py
+└── common/
+    ├── base.py           # Base client class
+    ├── exceptions.py     # Custom exceptions
+    ├── utils.py          # Utility functions
+    └── __init__.py
+```
+
+### Naming Conventions
+- **Classes**: PascalCase (`TradingClient`, `MarketOrderRequest`)
+- **Methods**: snake_case (`get_orders`, `submit_order`)
+- **Constants**: UPPER_SNAKE_CASE (`DEFAULT_TIMEOUT`)
+- **Private methods**: Leading underscore (`_make_request`)
+
+## Code Maintenance Rules
+
+### 1. Refactoring Guidelines
+- **Preserve public API compatibility**
+- Use deprecation warnings for breaking changes
+- Maintain backward compatibility for at least 2 major versions
+- Extract common patterns into base classes
+
+### 2. Performance Optimization
+- **Lazy loading** for expensive operations
+- **Connection pooling** for HTTP requests
+- **Efficient data structures** for large datasets
+- **Memory management** for streaming operations
+
+### 3. Security Considerations
+- **Never log API keys or secrets**
+- Sanitize user inputs in request models
+- Use secure defaults for API connections
+- Implement rate limiting where appropriate
+
+### 4. Code Review Checklist
+- [ ] Type hints on all public methods
+- [ ] Comprehensive docstrings
+- [ ] Error handling implemented
+- [ ] Tests added/updated
+- [ ] Examples work correctly
+- [ ] Performance impact assessed
+- [ ] Security implications reviewed
+
+## SDK-Specific Guidelines
+
+### Financial Data Handling
+- **Precision**: Use Decimal for financial calculations
+- **Timezone**: Handle market timezones correctly
+- **Validation**: Validate symbols, quantities, and prices
+- **Null handling**: Gracefully handle missing market data
+
+### API Client Patterns
+```python
+class SomeClient(BaseClient):
+    def __init__(self, api_key: str, secret_key: str, **kwargs):
+        super().__init__(api_key, secret_key, **kwargs)
+        
+    def some_method(self, request: SomeRequest) -> SomeResponse:
+        # Validate request
+        request.validate()
+        
+        # Make API call
+        response = self._request("GET", "/endpoint", request.to_dict())
+        
+        # Parse and return response
+        return SomeResponse.from_dict(response)
+```
+
+### Streaming Data Patterns
+- Use async/await for streaming operations
+- Implement proper connection management
+- Handle reconnection logic
+- Provide clear event callbacks
+
+### Data Conversion
+- **Pandas integration**: Provide `.df` property on responses
+- **JSON serialization**: Support to_dict() and from_dict()
+- **Type conversion**: Handle API type mismatches gracefully
+
+## Continuous Improvement
+
+### Regular Maintenance Tasks
+- **Update dependencies** regularly
+- **Review and update examples**
+- **Performance benchmarking**
+- **Security audits**
+- **Documentation updates**
+
+### Code Quality Metrics
+- Maintain >90% test coverage
+- Keep cyclomatic complexity low
+- Monitor API response times
+- Track error rates and types
+
+### Community Contribution
+- Clear contribution guidelines
+- Responsive issue management
+- Regular releases with changelogs
+- Community feedback integration
+
+## Development Workflow
+
+1. **Feature Planning**: Discuss API changes with team
+2. **Implementation**: Follow TDD approach
+3. **Testing**: Comprehensive test suite
+4. **Documentation**: Update all relevant docs
+5. **Review**: Peer review and security check
+6. **Release**: Version bump and changelog
+
+## Tools and Automation
+
+### Required Tools
+- **Black**: Code formatting
+- **isort**: Import sorting
+- **mypy**: Type checking
+- **pytest**: Testing framework
+- **pre-commit**: Git hooks
+
+### CI/CD Pipeline
+- Automated testing on multiple Python versions
+- Code quality checks
+- Security scanning
+- Documentation generation
+- Automated releases
+
+Remember: This SDK is used by financial applications where accuracy, reliability, and security are paramount. Every change should be thoroughly tested and reviewed.
