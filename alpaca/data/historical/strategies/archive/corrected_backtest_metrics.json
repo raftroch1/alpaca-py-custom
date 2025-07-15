@@ -1,0 +1,19 @@
+{
+  "starting_capital": 25000,
+  "ending_capital": 71941.97027615247,
+  "total_pnl": 46941.97027615247,
+  "total_return_pct": 187.76788110460987,
+  "total_trades": 19,
+  "winning_trades": 8,
+  "losing_trades": 11,
+  "win_rate_pct": 42.10526315789473,
+  "avg_win": 6969.935654786957,
+  "avg_loss": -801.5922692857436,
+  "profit_factor": 8.695113366047675,
+  "max_position_size": 1350.0,
+  "max_risk_pct": 5.4,
+  "avg_position_size": 1350.0,
+  "avg_risk_pct": 5.4,
+  "avg_contracts_per_trade": 3.0,
+  "max_contracts_traded": 3
+}
