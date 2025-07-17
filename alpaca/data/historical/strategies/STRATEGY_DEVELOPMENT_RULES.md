@@ -1,4 +1,19 @@
-# STRATEGY DEVELOPMENT FRAMEWORK RULES
+# STRATEGY DEVELOPMENT RULES
+
+## 🚫 **ABSOLUTE RULE - NO SIMULATION EVER**
+
+**CRITICAL**: This project NEVER uses simulated data, fallback pricing, or any form of fake option prices.
+
+- ✅ **ONLY real ThetaData** from the proven connector in `thetadata/connector.py`
+- ❌ **NO fallback pricing** under any circumstances
+- ❌ **NO simulation** when ThetaData is unavailable
+- ❌ **NO estimated/calculated option prices**
+- ✅ **Skip trades** when real data is unavailable
+- ✅ **Use existing working ThetaData infrastructure** that fixes the 474 error
+
+**If ThetaData is not working, fix the connection - don't simulate.**
+
+---
 
 ## Overview
 This document defines the standardized process for developing, testing, and maintaining option trading strategies in the alpaca-py project using ThetaData.

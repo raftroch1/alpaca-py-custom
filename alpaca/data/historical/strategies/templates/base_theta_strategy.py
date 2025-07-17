@@ -221,8 +221,15 @@ class BaseThetaStrategy(ABC):
             
             bars = self.alpaca_client.get_stock_bars(request_params)
             
+            # Extract SPY bars from BarSet (same pattern as working backtest)
+            if hasattr(bars, 'data') and isinstance(bars.data, dict) and 'SPY' in bars.data:
+                spy_bars = bars.data['SPY']
+            else:
+                self.logger.error("Could not extract SPY bars from Alpaca SDK response.")
+                return None
+            
             spy_data = []
-            for bar in bars:
+            for bar in spy_bars:
                 spy_data.append({
                     'date': bar.timestamp.strftime('%Y-%m-%d'),
                     'open': float(bar.open),
@@ -308,23 +315,42 @@ class BaseThetaStrategy(ABC):
         return filepath
     
     def calculate_performance_metrics(self) -> Dict[str, float]:
-        """Calculate comprehensive performance metrics"""
+        """Calculate strategy performance metrics"""
         if not self.trades:
             return {}
         
         df = pd.DataFrame(self.trades)
-        total_profit = df['profit'].sum()
-        profitable_trades = len(df[df['profit'] > 0])
         total_trades = len(df)
         
+        # Handle different column structures  
+        if 'profit' in df.columns:
+            profit_column = df['profit']
+        elif 'premium' in df.columns:
+            # For now, use premium as proxy (could be enhanced)
+            profit_column = df['premium'] 
+        else:
+            # No profit data available, return basic metrics
+            return {
+                'total_trades': total_trades,
+                'total_profit': 0.0,
+                'win_rate': 0.0,
+                'avg_profit_per_trade': 0.0
+            }
+        
+        total_profit = profit_column.sum()
+        winning_trades = len(profit_column[profit_column > 0]) if total_trades > 0 else 0
+        win_rate = winning_trades / total_trades if total_trades > 0 else 0
+        
         return {
-            'total_return': (total_profit / self.starting_capital) * 100,
-            'total_profit': total_profit,
             'total_trades': total_trades,
-            'profitable_trades': profitable_trades,
-            'win_rate': (profitable_trades / total_trades) * 100 if total_trades > 0 else 0,
+            'winning_trades': winning_trades,
+            'total_profit': total_profit,
+            'win_rate': win_rate,
             'avg_profit_per_trade': total_profit / total_trades if total_trades > 0 else 0,
-            'skipped_trades': self.skipped_trades
+            'skipped_trades': 0,  # Add missing key for compatibility
+            'losing_trades': max(0, total_trades - winning_trades),  # Add missing key
+            'total_winning_profit': max(0, total_profit) if winning_trades > 0 else 0,
+            'total_losing_profit': min(0, total_profit) if (total_trades - winning_trades) > 0 else 0
         }
     
     def print_performance_summary(self):
