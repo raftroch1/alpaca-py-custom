@@ -27,23 +27,53 @@ class ThetaDataConnector:
         self.cache: Dict[str, Optional[float]] = {}
 
     def test_connection(self) -> bool:
-        """Test ThetaData connection with a known working request."""
+        """Test ThetaData connection with comprehensive status checking."""
         try:
             url = f"{self.base_url}/v2/hist/option/eod"
+            # Use a more recent date that should have data
             params = {
                 'root': 'SPY',
-                'exp': '20240705',
-                'strike': '535000',
+                'exp': '20250117',  # Recent expiration date
+                'strike': '600000',  # $600 strike in thousandths
                 'right': 'P',
-                'start_date': '20240705',
-                'end_date': '20240705'
+                'start_date': '20250115',  # Recent trading date
+                'end_date': '20250115'
             }
+            
             response = self.session.get(url, params=params, timeout=10)
+            
             if response.status_code == 200:
-                data = response.json()
-                return 'response' in data and len(data['response']) > 0
-            return False
-        except Exception:
+                try:
+                    data = response.json()
+                    if 'response' in data and len(data['response']) > 0:
+                        print("✅ ThetaData connection successful")
+                        print("✅ Options data accessible")
+                        return True
+                    else:
+                        print("⚠️  ThetaData connected but no data returned (may be normal for recent dates)")
+                        return False
+                except Exception as e:
+                    print(f"❌ JSON parsing error: {e}")
+                    print(f"📄 Raw response: {response.text[:200]}...")
+                    return False
+            elif response.status_code == 474:
+                print("❌ ThetaData Terminal connection error:")
+                print("   Status 474: Connection lost to Theta Data MDDS")
+                print("   🔧 SOLUTION:")
+                print("   1. Restart ThetaData Terminal:")
+                print("      - Close the current ThetaTerminal.jar process")
+                print("      - Navigate to alpaca/data/historical/thetadata/")
+                print("      - Run: java -jar ThetaTerminal.jar [your_email] [your_password]")
+                print("   2. Wait for connection to establish (may take 30-60 seconds)")
+                print("   3. Verify your ThetaData subscription includes options data")
+                print("   4. Check your internet connection")
+                return False
+            else:
+                print(f"❌ HTTP {response.status_code}: {response.text[:200]}...")
+                return False
+        except Exception as e:
+            print(f"❌ Connection test error: {e}")
+            print("   Make sure ThetaData Terminal is running on port 25510")
             return False
 
     def get_option_price(self, symbol: str, date: str, strike: float, right: str) -> Optional[float]:

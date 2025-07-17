@@ -1,0 +1,3 @@
+date,strategy_type,confidence,spy_price,strike,option_type,option_price,contracts,total_cost,profit_targets,stop_loss,rsi,vix_level,entry_time,exit_type,return_pct,pnl,final_value,exit_time
+20250107,PUT_MOMENTUM,0.45,585.134765625,586.0,P,0.01,50,50.0,"[0.3, 0.6, 1.2]",-0.35,47.15828917140827,17.81999969482422,00:10:54,profit_target_2,0.6,30.0,80.0,15:45:00
+20250110,PUT_MOMENTUM,0.45,577.0430908203125,578.0,P,0.01,50,50.0,"[0.3, 0.6, 1.2]",-0.35,26.379224790642184,19.540000915527344,00:10:55,home_run,2.0,100.0,150.0,15:45:00

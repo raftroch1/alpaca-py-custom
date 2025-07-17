@@ -13,16 +13,17 @@ TODO:
 - Add unit and integration tests
 """
 
-# PATCH: Try direct relative import first, fallback to absolute if needed
-try:
-    from .templates.base_theta_strategy import BaseThetaStrategy
-except ImportError:
-    from alpaca.data.historical.strategies.templates.base_theta_strategy import BaseThetaStrategy
-
-# PATCH: Import proven ThetaData connector
+# PATCH: Add paths and import base strategy
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'thetadata'))
+
+# Add paths for imports
+current_dir = os.path.dirname(__file__)
+sys.path.append(os.path.join(current_dir, 'templates'))
+sys.path.append(os.path.join(os.path.dirname(current_dir), 'thetadata'))
+
+# Import base strategy and connector
+from base_theta_strategy import BaseThetaStrategy
 from connector import ThetaDataConnector
 from typing import Dict, Optional, Any, List
 import pandas as pd

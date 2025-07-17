@@ -208,35 +208,27 @@ class BaseThetaStrategy(ABC):
             return None
     
     def get_spy_data(self, start_date: str, end_date: str) -> Optional[pd.DataFrame]:
-        """Get SPY data using Alpaca client"""
+        """Get SPY data using yfinance (same pattern as VIX)"""
         self.logger.info(f"📊 Fetching SPY data from {start_date} to {end_date}...")
         
         try:
-            request_params = StockBarsRequest(
-                symbol_or_symbols=["SPY"],
-                timeframe=TimeFrame(1, TimeFrameUnit.Day),
-                start=datetime.strptime(start_date, '%Y-%m-%d'),
-                end=datetime.strptime(end_date, '%Y-%m-%d')
-            )
+            # Use same pattern as VIX data (which works)
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            spy = yf.download('SPY', start=start_date, end=end_dt.strftime('%Y-%m-%d'), progress=False)
             
-            bars = self.alpaca_client.get_stock_bars(request_params)
-            
-            # Extract SPY bars from BarSet (same pattern as working backtest)
-            if hasattr(bars, 'data') and isinstance(bars.data, dict) and 'SPY' in bars.data:
-                spy_bars = bars.data['SPY']
-            else:
-                self.logger.error("Could not extract SPY bars from Alpaca SDK response.")
+            if spy.empty:
+                self.logger.error("❌ No SPY data returned")
                 return None
             
             spy_data = []
-            for bar in spy_bars:
+            for date, row in spy.iterrows():
                 spy_data.append({
-                    'date': bar.timestamp.strftime('%Y-%m-%d'),
-                    'open': float(bar.open),
-                    'high': float(bar.high),
-                    'low': float(bar.low),
-                    'close': float(bar.close),
-                    'volume': int(bar.volume)
+                    'date': date.strftime('%Y-%m-%d'),
+                    'open': float(row['Open']),
+                    'high': float(row['High']),
+                    'low': float(row['Low']),
+                    'close': float(row['Close']),
+                    'volume': int(row['Volume'])
                 })
             
             df = pd.DataFrame(spy_data)
