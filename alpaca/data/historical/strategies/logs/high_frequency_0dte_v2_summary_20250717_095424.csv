@@ -1,0 +1,2 @@
+strategy_version,backtest_period,total_trades,daily_trade_frequency,win_rate_pct,total_pnl,daily_pnl_avg,total_return_pct,final_capital,target_achieved,daily_target_hit_rate,high_conviction_trades,momentum_trades,profitable_days,profitable_days_pct,max_daily_profit,min_daily_profit,regime_trending,regime_ranging,regime_volatile
+v2,20241208_to_20241213,34,6.8,79.41176470588235,2462.0880879330944,492.41761758661886,9.848352351732377,27462.088087933094,True,100.0,34,0,5,100.0,889.5599500591081,325.56359625805925,0,34,0
